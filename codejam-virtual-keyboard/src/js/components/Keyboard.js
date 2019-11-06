@@ -1,4 +1,5 @@
 import createElementWithClass from '../utils/utils';
+import { LANGUAGES, REGISTER } from '../configs';
 
 export default class Keyboard {
   constructor(config, language) {
@@ -8,7 +9,7 @@ export default class Keyboard {
     this.state = {
       pressedChar: null,
       register: false,
-      currentLanguage: +language,
+      currentLanguage: language,
       isPressCaps: false,
     };
     this.pressKey = this.pressKey.bind(this);
@@ -23,7 +24,7 @@ export default class Keyboard {
       row.forEach((char) => {
         const [code, languages, writable] = char;
         if (writable) {
-          const alternativeOutput = languages[0][2];
+          const alternativeOutput = languages[LANGUAGES.RU][2];
           if (alternativeOutput) {
             map[code] = [[alternativeOutput, alternativeOutput],
               [alternativeOutput, alternativeOutput]];
@@ -44,7 +45,8 @@ export default class Keyboard {
       items.forEach((button, collIndex) => {
         const char = this.config[rowIndex][collIndex];
         const [, languages] = char;
-        button.textContent = languages[currentLanguage][this.state.register ? 1 : 0];
+        button.textContent = languages[currentLanguage][this.state.register
+          ? REGISTER.UPPER : REGISTER.LOWER];
       });
     });
   }
@@ -68,11 +70,13 @@ export default class Keyboard {
     }
   }
 
-  pressKey(code) {
+  pressKey(code, event) {
     if (code in this.charMap) {
+      event.preventDefault();
       const { currentLanguage } = this.state;
       const languages = this.charMap[code];
-      const char = languages[currentLanguage][this.state.register ? 1 : 0];
+      const char = languages[currentLanguage][this.state.register
+        ? REGISTER.UPPER : REGISTER.LOWER];
       Keyboard.cellKeypressEvent(char);
     }
   }
@@ -88,6 +92,14 @@ export default class Keyboard {
     }
   }
 
+  changeLanguage() {
+    this.state.currentLanguage = this.state.currentLanguage
+      === LANGUAGES.RU ? LANGUAGES.EN : LANGUAGES.RU;
+    const keyPressEvent = new CustomEvent('changeLanguage', { detail: this.state.currentLanguage });
+    document.dispatchEvent(keyPressEvent);
+    this.updateChar();
+  }
+
   clickHandler(event) {
     const element = event.target;
     if (element.nodeName === 'BUTTON') {
@@ -100,13 +112,12 @@ export default class Keyboard {
         this.toggleCapsLock(code);
         return;
       }
-      this.pressKey(code);
+      this.pressKey(code, event);
     }
   }
 
   keyDownHandler(event) {
     const { code } = event;
-    this.pressKey(code);
 
     if (code === 'AltLeft' && code === 'AltRight') {
       event.preventDefault();
@@ -115,34 +126,33 @@ export default class Keyboard {
     if (code === 'CapsLock') {
       if (this.state.pressedChar !== code) {
         this.toggleCapsLock(code);
-        this.state.pressedChar = code;
       }
       return;
     }
 
-    if (code === 'ControlLeft' && event.altKey) {
+    const isChangeLanguage = (code === 'ControlLeft' && event.altKey) || (code === 'AltLeft' && event.ctrlKey);
+    if (isChangeLanguage) {
       if (this.state.pressedChar !== code) {
-        this.state.currentLanguage = this.state.currentLanguage === 0 ? 1 : 0;
-        const keyPressEvent = new CustomEvent('changeLanguage', { detail: this.state.currentLanguage });
-        document.dispatchEvent(keyPressEvent);
-        this.updateChar();
-        this.state.pressedChar = code;
+        this.changeLanguage();
       }
     }
 
-    if (code === 'ShiftRight' || code === 'ShiftLeft') {
+    const isChangeRegister = code === 'ShiftRight' || code === 'ShiftLeft';
+    if (isChangeRegister) {
       if (this.state.pressedChar !== code) {
         this.state.register = !this.state.register;
         this.updateChar();
-        this.state.pressedChar = code;
       }
     }
+    this.state.pressedChar = code;
+    this.pressKey(code, event);
     this.addActiveClass(code);
   }
 
   keyUpHandler(event) {
     const { code } = event;
     this.state.pressedChar = null;
+
     if (code === 'CapsLock') {
       return;
     }
@@ -162,7 +172,8 @@ export default class Keyboard {
       let classList = ['keyboard__button'];
       classList = size ? [...classList, `keyboard__button--${size}`] : classList;
       const keyboardButton = createElementWithClass('button', classList);
-      keyboardButton.innerHTML = languages[currentLanguage][this.state.register ? 1 : 0];
+      keyboardButton.innerHTML = languages[currentLanguage][this.state.register
+        ? REGISTER.UPPER : REGISTER.LOWER];
       keyboardButton.dataset.code = code;
       return keyboardButton;
     };

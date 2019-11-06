@@ -32,6 +32,7 @@
   &:active {
     border-radius: 48px;
     opacity: 0.85;
+    transition: border-radius 0.1s;
   }
 
   &--backspace {
@@ -44,6 +45,7 @@
   &--active {
     border-radius: 48px;
     opacity: 0.85;
+    transition: border-radius 0.1s;
   }
 
   &--big {

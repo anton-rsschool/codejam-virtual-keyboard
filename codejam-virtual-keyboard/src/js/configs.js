@@ -70,6 +70,18 @@ const KEYBOARD_CONFIG = [
   ],
 ];
 
+const LANGUAGES = {
+  RU: 0,
+  EN: 1,
+};
+
+const REGISTER = {
+  LOWER: 0,
+  UPPER: 1,
+};
+
 export {
   KEYBOARD_CONFIG,
+  LANGUAGES,
+  REGISTER,
 };

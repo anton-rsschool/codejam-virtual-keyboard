@@ -1,8 +1,8 @@
-import { KEYBOARD_CONFIG } from './configs';
+import { KEYBOARD_CONFIG, LANGUAGES } from './configs';
 import Keyboard from './components/Keyboard';
 import Textarea from './components/Textarea';
 
-let language = 1;
+let language = LANGUAGES.EN;
 
 const changeLanguageHandler = (event) => {
   const newLanguage = event.detail;
@@ -21,7 +21,7 @@ const loadHandler = () => {
 };
 
 const unloadHandler = () => {
-  localStorage.setItem('currentLanguage', language);
+  localStorage.setItem('currentLanguage', +language);
 };
 
 document.addEventListener('changeLanguage', changeLanguageHandler);

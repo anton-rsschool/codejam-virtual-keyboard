@@ -1,5 +1,6 @@
 import { KEYBOARD_CONFIG } from './configs';
 import Keyboard from './components/Keyboard';
+import Textarea from './components/Textarea';
 
 let language = 1;
 
@@ -14,7 +15,9 @@ const loadHandler = () => {
   }
 
   const keyboard = new Keyboard(KEYBOARD_CONFIG, language).render();
-  document.body.append(keyboard);
+  const textarea = new Textarea().render();
+  document.body.prepend(keyboard);
+  document.body.prepend(textarea);
 };
 
 const unloadHandler = () => {

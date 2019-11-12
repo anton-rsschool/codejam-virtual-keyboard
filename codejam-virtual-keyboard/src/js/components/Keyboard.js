@@ -8,6 +8,7 @@ export default class Keyboard {
     this.keyboard = null;
     this.state = {
       pressedChar: null,
+      pressedAltOrCtrl: false,
       register: false,
       currentLanguage: language,
       isPressCaps: false,
@@ -16,6 +17,8 @@ export default class Keyboard {
     this.keyDownHandler = this.keyDownHandler.bind(this);
     this.keyUpHandler = this.keyUpHandler.bind(this);
     this.clickHandler = this.clickHandler.bind(this);
+    this.mouseUpHandler = this.mouseUpHandler.bind(this);
+    this.moudeDownHandler = this.moudeDownHandler.bind(this);
   }
 
   getCharMap() {
@@ -104,10 +107,16 @@ export default class Keyboard {
     const element = event.target;
     if (element.nodeName === 'BUTTON') {
       const { code } = element.dataset;
+      const isChangeLanguage = (code === 'ControlLeft' && this.state.pressedChar === 'AltLeft')
+        || (code === 'AltLeft' && this.state.pressedChar === 'ControlLeft');
+
       if (code === 'Backspace') {
         Keyboard.cellKeypressEvent('Backspace');
       } else if (code === 'Delete') {
         Keyboard.cellKeypressEvent('Delete');
+      } else if (isChangeLanguage) {
+        this.changeLanguage();
+        return;
       } else if (code === 'CapsLock') {
         this.toggleCapsLock(code);
         return;
@@ -119,7 +128,7 @@ export default class Keyboard {
   keyDownHandler(event) {
     const { code } = event;
 
-    if (code === 'AltLeft' && code === 'AltRight') {
+    if (code === 'AltLeft' || code === 'AltRight') {
       event.preventDefault();
     }
 
@@ -130,7 +139,10 @@ export default class Keyboard {
       return;
     }
 
-    const isChangeLanguage = (code === 'ControlLeft' && event.altKey) || (code === 'AltLeft' && event.ctrlKey);
+    const isChangeLanguage = (code === 'ControlLeft' && event.altKey)
+                            || (code === 'AltLeft' && event.ctrlKey)
+                            || (code === 'ControlLeft' && this.state.pressedAltOrCtrl === 'AltLeft')
+                            || (code === 'AltLeft' && this.state.pressedAltOrCtrl === 'ControlLeft');
     if (isChangeLanguage) {
       if (this.state.pressedChar !== code) {
         this.changeLanguage();
@@ -164,6 +176,26 @@ export default class Keyboard {
     this.removeActiveClass(code);
   }
 
+  moudeDownHandler(event) {
+    const elem = event.target;
+    if (elem.nodeName === 'BUTTON') {
+      const { code } = elem.dataset;
+      if (code === 'ControlLeft' || code === 'AltLeft') {
+        this.state.pressedAltOrCtrl = code;
+      }
+    }
+  }
+
+  mouseUpHandler(event) {
+    const elem = event.target;
+    const { code } = elem.dataset;
+    const isChangeLanguage = (code === 'ControlLeft' && this.state.pressedAltOrCtrl === 'AltLeft')
+        || (code === 'AltLeft' && this.state.pressedAltOrCtrl === 'ControlLeft');
+    if (elem.nodeName === 'BUTTON' && isChangeLanguage) {
+      this.changeLanguage();
+    }
+  }
+
   render() {
     this.keyboard = createElementWithClass('div', ['keyboard']);
     const { currentLanguage } = this.state;
@@ -188,6 +220,8 @@ export default class Keyboard {
 
     document.addEventListener('keydown', this.keyDownHandler);
     document.addEventListener('keyup', this.keyUpHandler);
+    document.addEventListener('mousedown', this.moudeDownHandler);
+    document.addEventListener('mouseup', this.mouseUpHandler);
     this.keyboard.addEventListener('click', this.clickHandler);
     return this.keyboard;
   }

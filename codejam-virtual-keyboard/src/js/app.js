@@ -14,14 +14,14 @@ const loadHandler = () => {
     language = localStorage.getItem('currentLanguage');
   }
 
-  const keyboard = new Keyboard(KEYBOARD_CONFIG, language).render();
+  const keyboard = new Keyboard(KEYBOARD_CONFIG, +language).render();
   const textarea = new Textarea().render();
   document.body.prepend(keyboard);
   document.body.prepend(textarea);
 };
 
 const unloadHandler = () => {
-  localStorage.setItem('currentLanguage', +language);
+  localStorage.setItem('currentLanguage', language);
 };
 
 document.addEventListener('changeLanguage', changeLanguageHandler);
